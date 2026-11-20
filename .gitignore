@@ -1,0 +1,42 @@
+### Secrets & credentials ###
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+.aws/
+credentials
+application-local.*
+application-secret*.*
+
+### IDE ###
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+### Build output ###
+target/
+build/
+out/
+
+### Node / Serverless ###
+node_modules/
+.serverless/
+npm-debug.log*
+
+### Terraform / CDK ###
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+cdk.out/
+
+### Logs & OS ###
+*.log
+logs/
+.DS_Store
+Thumbs.db
