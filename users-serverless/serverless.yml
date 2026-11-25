@@ -1,0 +1,70 @@
+service: users-serverless
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  region: us-east-2
+  stage: ${opt:stage, 'dev'}
+  architecture: arm64
+  timeout: 10
+  logRetentionInDays: 7
+  tags:
+    project: reto-aws
+    service: users-serverless
+
+package:
+  individually: true
+  patterns:
+    - '!**'
+
+functions:
+  getUser:
+    runtime: java21
+    memorySize: 512
+    snapStart: true
+    handler: com.reto.aws.infrastructure.entrypoint.GetUserFunction::handleRequest
+    package:
+      artifact: users-java/target/users-java.jar
+    events:
+      - httpApi:
+          method: GET
+          path: /users/{id}
+
+  createUser:
+    runtime: java21
+    memorySize: 512
+    snapStart: true
+    handler: com.reto.aws.infrastructure.entrypoint.CreateUserFunction::handleRequest
+    package:
+      artifact: users-java/target/users-java.jar
+    events:
+      - httpApi:
+          method: POST
+          path: /users
+
+  updateUser:
+    runtime: nodejs24.x
+    memorySize: 256
+    handler: users-node/src/infrastructure/entrypoint/update-user-function.handler
+    package:
+      patterns:
+        - users-node/package.json
+        - users-node/src/**
+    events:
+      - httpApi:
+          method: PUT
+          path: /users/{id}
+
+  deleteUser:
+    runtime: nodejs24.x
+    memorySize: 256
+    handler: users-node/src/infrastructure/entrypoint/delete-user-function.handler
+    package:
+      patterns:
+        - users-node/package.json
+        - users-node/src/**
+    events:
+      - httpApi:
+          method: DELETE
+          path: /users/{id}
