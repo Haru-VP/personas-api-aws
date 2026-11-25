@@ -1,0 +1,7 @@
+package com.reto.aws.infrastructure.exception;
+
+public class InvalidRequestException extends RuntimeException {
+    public InvalidRequestException(String message) {
+        super(message);
+    }
+}
