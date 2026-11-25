@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 class HttpResponseFactoryTest {
 
     private static final String CONTENT_TYPE = "Content-Type";
-    private static final String APPLICATION_JSON = "application/json";
+    private static final String APPLICATION_JSON = "application/json; charset=utf-8";
 
     private final HttpResponseFactory factory = new HttpResponseFactory(new ObjectMapper());
     private final UserResponseDto user = new UserResponseDto("1", "Ana", "ana@mail.com");

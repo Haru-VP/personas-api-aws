@@ -37,7 +37,7 @@ describe('HttpResponseFactory', () => {
   it('ok devuelve 200 con JSON', () => {
     assert.deepEqual(factory.ok({ id: '1' }), {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
       body: '{"id":"1"}',
     });
   });

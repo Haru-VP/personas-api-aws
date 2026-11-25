@@ -1,6 +1,6 @@
 const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
-const JSON_HEADERS = Object.freeze({ 'Content-Type': 'application/json' });
+const JSON_HEADERS = Object.freeze({ 'Content-Type': 'application/json; charset=utf-8' });
 
 const jsonResponse = (statusCode, body) => ({
   statusCode,

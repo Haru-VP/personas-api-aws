@@ -12,7 +12,7 @@ public class HttpResponseFactory {
 
     private static final String CONTENT_TYPE_HEADER = "Content-Type";
     private static final String LOCATION_HEADER = "Location";
-    private static final String APPLICATION_JSON = "application/json";
+    private static final String APPLICATION_JSON = "application/json; charset=utf-8";
 
     private final ObjectMapper objectMapper;
 
