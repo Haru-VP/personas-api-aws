@@ -1,5 +1,5 @@
-import { User } from '../../../domain/model/user.js';
-import { UserPersistencePort } from '../../../domain/repositoryport/user-persistence-port.js';
+﻿import { User } from '../../../../src/domain/model/user.js';
+import { UserPersistencePort } from '../../../../src/domain/repositoryport/user-persistence-port.js';
 
 const SEED_USERS = [
   new User({ id: '1', name: 'Ana Gómez', email: 'ana.gomez@mail.com' }),

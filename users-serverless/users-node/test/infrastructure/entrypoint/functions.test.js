@@ -1,12 +1,26 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { UserHandler } from '../../../src/application/handler/user-handler.js';
+import { UserUseCase } from '../../../src/domain/usecase/user-use-case.js';
 import { beans } from '../../../src/infrastructure/configuration/bean-configuration.js';
-import { handler as deleteUser } from '../../../src/infrastructure/entrypoint/delete-user-function.js';
-import { buildUpdateUserFunction, handler as updateUser } from '../../../src/infrastructure/entrypoint/update-user-function.js';
+import { buildDeleteUserFunction, handler as deleteHandler } from '../../../src/infrastructure/entrypoint/delete-user-function.js';
+import { buildUpdateUserFunction, handler as updateHandler } from '../../../src/infrastructure/entrypoint/update-user-function.js';
+import { InMemoryUserAdapter } from '../persistence/adapter/in-memory-user-adapter.js';
 
 const eventFor = (id, body) => ({ pathParameters: id === undefined ? undefined : { id }, body });
 
+const inMemoryBeans = () => ({ ...beans, userHandler: new UserHandler(new UserUseCase(new InMemoryUserAdapter())) });
+
+describe('Lambda handlers', () => {
+  it('are wired from the bean configuration', () => {
+    assert.equal(typeof updateHandler, 'function');
+    assert.equal(typeof deleteHandler, 'function');
+  });
+});
+
 describe('updateUser (PUT /users/{id})', () => {
+  const updateUser = buildUpdateUserFunction(inMemoryBeans());
+
   it('updates an existing user and returns 200', async () => {
     const response = await updateUser(eventFor('1', '{"name":"Ana G.","email":"ana.g@mail.com"}'));
 
@@ -40,6 +54,8 @@ describe('updateUser (PUT /users/{id})', () => {
 });
 
 describe('deleteUser (DELETE /users/{id})', () => {
+  const deleteUser = buildDeleteUserFunction(inMemoryBeans());
+
   it('deletes an existing user and returns 204', async () => {
     assert.equal((await deleteUser(eventFor('3'))).statusCode, 204);
   });
