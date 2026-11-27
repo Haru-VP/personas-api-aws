@@ -2,6 +2,10 @@ service: users-serverless
 
 frameworkVersion: '4'
 
+custom:
+  usersTableName: users-${sls:stage}
+  emailIndexName: email-index
+
 provider:
   name: aws
   region: us-east-2
@@ -9,6 +13,9 @@ provider:
   architecture: arm64
   timeout: 10
   logRetentionInDays: 7
+  environment:
+    USERS_TABLE: ${self:custom.usersTableName}
+    USERS_EMAIL_INDEX: ${self:custom.emailIndexName}
   tags:
     project: reto-aws
     service: users-serverless
@@ -23,6 +30,7 @@ functions:
     runtime: java21
     memorySize: 512
     snapStart: true
+    role: GetUserRole
     handler: com.reto.aws.infrastructure.entrypoint.GetUserFunction::handleRequest
     package:
       artifact: users-java/target/users-java.jar
@@ -35,6 +43,7 @@ functions:
     runtime: java21
     memorySize: 512
     snapStart: true
+    role: CreateUserRole
     handler: com.reto.aws.infrastructure.entrypoint.CreateUserFunction::handleRequest
     package:
       artifact: users-java/target/users-java.jar
@@ -46,6 +55,7 @@ functions:
   updateUser:
     runtime: nodejs24.x
     memorySize: 256
+    role: UpdateUserRole
     handler: users-node/src/infrastructure/entrypoint/update-user-function.handler
     package:
       patterns:
@@ -59,6 +69,7 @@ functions:
   deleteUser:
     runtime: nodejs24.x
     memorySize: 256
+    role: DeleteUserRole
     handler: users-node/src/infrastructure/entrypoint/delete-user-function.handler
     package:
       patterns:
@@ -68,3 +79,151 @@ functions:
       - httpApi:
           method: DELETE
           path: /users/{id}
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.usersTableName}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:custom.emailIndexName}
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: KEYS_ONLY
+        Tags:
+          - Key: project
+            Value: reto-aws
+          - Key: service
+            Value: users-serverless
+
+    GetUserRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: get-user-policy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${sls:stage}-getUser:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                  Resource:
+                    Fn::GetAtt: [UsersTable, Arn]
+
+    CreateUserRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: create-user-policy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${sls:stage}-createUser:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:PutItem
+                  Resource:
+                    Fn::GetAtt: [UsersTable, Arn]
+                - Effect: Allow
+                  Action:
+                    - dynamodb:Query
+                  Resource:
+                    Fn::Sub: ${UsersTable.Arn}/index/${self:custom.emailIndexName}
+
+    UpdateUserRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: update-user-policy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${sls:stage}-updateUser:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                  Resource:
+                    Fn::GetAtt: [UsersTable, Arn]
+                - Effect: Allow
+                  Action:
+                    - dynamodb:Query
+                  Resource:
+                    Fn::Sub: ${UsersTable.Arn}/index/${self:custom.emailIndexName}
+
+    DeleteUserRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: delete-user-policy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${sls:stage}-deleteUser:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:DeleteItem
+                  Resource:
+                    Fn::GetAtt: [UsersTable, Arn]
