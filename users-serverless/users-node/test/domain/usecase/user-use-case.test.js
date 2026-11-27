@@ -23,7 +23,7 @@ describe('UserUseCase', () => {
   });
 
   describe('updateUser', () => {
-    it('normaliza los datos y guarda el usuario', async () => {
+    it('normalizes the data and saves the user', async () => {
       const result = await useCase.updateUser('1', { name: ' Ana María ', email: ' Ana.Maria@Mail.com ' });
 
       assert.deepEqual(result, new User({ id: '1', name: 'Ana María', email: 'ana.maria@mail.com' }));
@@ -31,14 +31,14 @@ describe('UserUseCase', () => {
       assert.equal(persistencePort.saveUser.mock.callCount(), 1);
     });
 
-    it('no valida duplicado cuando el email no cambia', async () => {
+    it('skips the duplicate check when the email does not change', async () => {
       await useCase.updateUser('1', { name: 'Ana', email: 'ANA@mail.com' });
 
       assert.equal(persistencePort.existsByEmail.mock.callCount(), 0);
       assert.equal(persistencePort.saveUser.mock.callCount(), 1);
     });
 
-    it('lanza error si el nuevo email ya pertenece a otro usuario', async () => {
+    it('throws when the new email belongs to another user', async () => {
       persistencePort.existsByEmail.mock.mockImplementation(async () => true);
 
       await assert.rejects(
@@ -48,27 +48,27 @@ describe('UserUseCase', () => {
       assert.equal(persistencePort.saveUser.mock.callCount(), 0);
     });
 
-    it('lanza error si el usuario no existe', async () => {
+    it('throws when the user does not exist', async () => {
       await assert.rejects(useCase.updateUser('999', { name: 'Ana', email: 'ana@mail.com' }), UserNotFoundError);
       assert.equal(persistencePort.saveUser.mock.callCount(), 0);
     });
 
     for (const id of [undefined, null, '', '   ', 7]) {
-      it(`lanza error si el id es inválido (${String(id)})`, async () => {
+      it(`throws when the id is invalid (${String(id)})`, async () => {
         await assert.rejects(useCase.updateUser(id, { name: 'Ana', email: 'ana@mail.com' }), InvalidUserError);
         assert.equal(persistencePort.findById.mock.callCount(), 0);
       });
     }
 
     for (const name of [undefined, null, '', '   ', 42]) {
-      it(`lanza error si el nombre es inválido (${String(name)})`, async () => {
+      it(`throws when the name is invalid (${String(name)})`, async () => {
         await assert.rejects(useCase.updateUser('1', { name, email: 'ana@mail.com' }), InvalidUserError);
         assert.equal(persistencePort.findById.mock.callCount(), 0);
       });
     }
 
     for (const email of [undefined, '', 'ana-mail.com', 'ana@mail', 'ana@@mail.com', 'ana @mail.com', 'ana@mail..com']) {
-      it(`lanza error si el email es inválido (${String(email)})`, async () => {
+      it(`throws when the email is invalid (${String(email)})`, async () => {
         await assert.rejects(useCase.updateUser('1', { name: 'Ana', email }), InvalidUserError);
         assert.equal(persistencePort.findById.mock.callCount(), 0);
       });
@@ -76,18 +76,18 @@ describe('UserUseCase', () => {
   });
 
   describe('deleteUser', () => {
-    it('elimina el usuario existente', async () => {
+    it('deletes the existing user', async () => {
       await useCase.deleteUser('1');
 
       assert.equal(persistencePort.deleteById.mock.calls[0].arguments[0], '1');
     });
 
-    it('lanza error si el usuario no existe', async () => {
+    it('throws when the user does not exist', async () => {
       await assert.rejects(useCase.deleteUser('999'), UserNotFoundError);
       assert.equal(persistencePort.deleteById.mock.callCount(), 0);
     });
 
-    it('lanza error si el id está vacío', async () => {
+    it('throws when the id is blank', async () => {
       await assert.rejects(useCase.deleteUser(' '), InvalidUserError);
       assert.equal(persistencePort.findById.mock.callCount(), 0);
     });
