@@ -17,7 +17,7 @@ describe('UserHandler', () => {
     handler = new UserHandler(servicePort);
   });
 
-  it('updateUser mapea el request al dominio y devuelve el DTO de respuesta', async () => {
+  it('updateUser maps the request to the domain and returns the response DTO', async () => {
     const response = await handler.updateUser('1', { name: 'Ana', email: 'ana@mail.com', id: 'ignorado' });
 
     const [id, sentToDomain] = servicePort.updateUser.mock.calls[0].arguments;
@@ -26,13 +26,13 @@ describe('UserHandler', () => {
     assert.deepEqual(response, { id: '1', name: 'Ana', email: 'ana@mail.com' });
   });
 
-  it('deleteUser delega en el puerto de servicio', async () => {
+  it('deleteUser delegates to the service port', async () => {
     await handler.deleteUser('1');
 
     assert.equal(servicePort.deleteUser.mock.calls[0].arguments[0], '1');
   });
 
-  it('propaga los errores del dominio', async () => {
+  it('propagates domain errors', async () => {
     servicePort.deleteUser.mock.mockImplementation(async (id) => {
       throw new UserNotFoundError(id);
     });
@@ -42,11 +42,11 @@ describe('UserHandler', () => {
 });
 
 describe('userDtoMapper', () => {
-  it('toUser ignora cualquier id enviado por el cliente', () => {
+  it('toUser ignores any id sent by the client', () => {
     assert.equal(toUser({ id: 'x', name: 'Ana', email: 'ana@mail.com' }).id, undefined);
   });
 
-  it('toResponseDto expone solo id, name y email', () => {
+  it('toResponseDto exposes only id, name and email', () => {
     const user = new User({ id: '1', name: 'Ana', email: 'ana@mail.com' });
 
     assert.deepEqual(Object.keys(toResponseDto(user)), ['id', 'name', 'email']);
