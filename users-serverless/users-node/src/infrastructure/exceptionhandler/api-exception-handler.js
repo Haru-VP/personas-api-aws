@@ -28,7 +28,7 @@ export class ApiExceptionHandler {
     if (statusCode) {
       return this.#responseFactory.error(statusCode, error.message);
     }
-    console.error('Error inesperado', error);
+    console.error('Unexpected error', error);
     return this.#responseFactory.error(HTTP_INTERNAL_ERROR, INTERNAL_ERROR_MESSAGE);
   }
 }

@@ -49,7 +49,7 @@ class GetUserFunctionTest {
     @Test
     void handleRequest_whenUnexpectedError_returns500() {
         UserHandler failingHandler = mock(UserHandler.class);
-        when(failingHandler.getUserById(anyString())).thenThrow(new IllegalStateException("fallo"));
+        when(failingHandler.getUserById(anyString())).thenThrow(new IllegalStateException("failure"));
         GetUserFunction function = new GetUserFunction(failingHandler, BeanConfiguration.requestReader(),
                 BeanConfiguration.responseFactory(), BeanConfiguration.exceptionHandler());
 

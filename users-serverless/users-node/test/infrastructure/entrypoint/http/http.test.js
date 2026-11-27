@@ -9,23 +9,23 @@ const VALID_JSON = '{"name":"Ana","email":"ana@mail.com"}';
 describe('HttpRequestReader', () => {
   const reader = new HttpRequestReader();
 
-  it('readBody devuelve el objeto del JSON', () => {
+  it('readBody returns the JSON object', () => {
     assert.deepEqual(reader.readBody({ body: VALID_JSON }), { name: 'Ana', email: 'ana@mail.com' });
   });
 
-  it('readBody decodifica un body en base64', () => {
+  it('readBody decodes a base64 body', () => {
     const event = { body: Buffer.from(VALID_JSON).toString('base64'), isBase64Encoded: true };
 
     assert.deepEqual(reader.readBody(event), { name: 'Ana', email: 'ana@mail.com' });
   });
 
-  for (const body of [undefined, null, '', '   ', 'null', '[1,2]', '"texto"', '42', '{no es json']) {
-    it(`readBody rechaza el body ${String(body)}`, () => {
+  for (const body of [undefined, null, '', '   ', 'null', '[1,2]', '"text"', '42', '{not json']) {
+    it(`readBody rejects the body ${String(body)}`, () => {
       assert.throws(() => reader.readBody({ body }), InvalidRequestError);
     });
   }
 
-  it('readPathParameter devuelve el valor o undefined', () => {
+  it('readPathParameter returns the value or undefined', () => {
     assert.equal(reader.readPathParameter({ pathParameters: { id: '1' } }, 'id'), '1');
     assert.equal(reader.readPathParameter({}, 'id'), undefined);
   });
@@ -34,7 +34,7 @@ describe('HttpRequestReader', () => {
 describe('HttpResponseFactory', () => {
   const factory = new HttpResponseFactory();
 
-  it('ok devuelve 200 con JSON', () => {
+  it('ok returns 200 with JSON', () => {
     assert.deepEqual(factory.ok({ id: '1' }), {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
@@ -42,11 +42,11 @@ describe('HttpResponseFactory', () => {
     });
   });
 
-  it('noContent devuelve 204 sin body', () => {
+  it('noContent returns 204 without body', () => {
     assert.deepEqual(factory.noContent(), { statusCode: 204 });
   });
 
-  it('error devuelve el código y el mensaje', () => {
+  it('error returns the status code and message', () => {
     const response = factory.error(404, 'No existe');
 
     assert.equal(response.statusCode, 404);

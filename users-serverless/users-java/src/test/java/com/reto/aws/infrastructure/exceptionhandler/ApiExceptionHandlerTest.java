@@ -45,10 +45,10 @@ class ApiExceptionHandlerTest {
 
     @Test
     void toResponse_whenUnexpectedError_returns500WithoutLeakingDetailsAndLogsIt() {
-        APIGatewayV2HTTPResponse response = handler.toResponse(new IllegalStateException("detalle interno"), logger);
+        APIGatewayV2HTTPResponse response = handler.toResponse(new IllegalStateException("internal detail"), logger);
 
         assertEquals(500, response.getStatusCode());
-        assertFalse(response.getBody().contains("detalle interno"));
+        assertFalse(response.getBody().contains("internal detail"));
         verify(logger).log(anyString());
     }
 }

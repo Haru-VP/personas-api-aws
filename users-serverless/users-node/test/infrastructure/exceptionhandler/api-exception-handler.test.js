@@ -18,19 +18,19 @@ describe('ApiExceptionHandler', () => {
   ];
 
   for (const [error, expectedStatus] of cases) {
-    it(`${error.name} se traduce a ${expectedStatus}`, () => {
+    it(`${error.name} maps to ${expectedStatus}`, () => {
       assert.equal(handler.toResponse(error).statusCode, expectedStatus);
     });
   }
 
-  for (const error of [new TypeError('detalle interno'), undefined]) {
-    it(`un error inesperado (${String(error)}) devuelve 500 sin exponer detalles y se registra`, (t) => {
+  for (const error of [new TypeError('internal detail'), undefined]) {
+    it(`an unexpected error (${String(error)}) returns 500 without leaking details and is logged`, (t) => {
       const logError = t.mock.method(console, 'error', () => undefined);
 
       const response = handler.toResponse(error);
 
       assert.equal(response.statusCode, 500);
-      assert.equal(response.body.includes('detalle interno'), false);
+      assert.equal(response.body.includes('internal detail'), false);
       assert.equal(logError.mock.callCount(), 1);
     });
   }

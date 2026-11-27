@@ -45,7 +45,7 @@ public class HttpResponseFactory {
         try {
             return objectMapper.writeValueAsString(body);
         } catch (JsonProcessingException exception) {
-            throw new IllegalStateException("No se pudo serializar la respuesta", exception);
+            throw new IllegalStateException("Could not serialize the response", exception);
         }
     }
 }

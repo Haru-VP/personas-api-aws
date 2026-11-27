@@ -49,7 +49,7 @@ class HttpResponseFactoryTest {
     @Test
     void ok_whenSerializationFails_throwsIllegalState() throws JsonProcessingException {
         ObjectMapper failingMapper = mock(ObjectMapper.class);
-        when(failingMapper.writeValueAsString(any())).thenThrow(new JsonProcessingException("fallo") {
+        when(failingMapper.writeValueAsString(any())).thenThrow(new JsonProcessingException("failure") {
         });
         HttpResponseFactory failingFactory = new HttpResponseFactory(failingMapper);
 

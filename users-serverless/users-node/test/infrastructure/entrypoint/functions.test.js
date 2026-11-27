@@ -7,32 +7,32 @@ import { buildUpdateUserFunction, handler as updateUser } from '../../../src/inf
 const eventFor = (id, body) => ({ pathParameters: id === undefined ? undefined : { id }, body });
 
 describe('updateUser (PUT /users/{id})', () => {
-  it('actualiza un usuario existente y devuelve 200', async () => {
+  it('updates an existing user and returns 200', async () => {
     const response = await updateUser(eventFor('1', '{"name":"Ana G.","email":"ana.g@mail.com"}'));
 
     assert.equal(response.statusCode, 200);
     assert.deepEqual(JSON.parse(response.body), { id: '1', name: 'Ana G.', email: 'ana.g@mail.com' });
   });
 
-  it('devuelve 404 si el usuario no existe', async () => {
+  it('returns 404 when the user does not exist', async () => {
     const response = await updateUser(eventFor('999', '{"name":"X","email":"x@mail.com"}'));
 
     assert.equal(response.statusCode, 404);
   });
 
-  it('devuelve 409 si el email pertenece a otro usuario', async () => {
+  it('returns 409 when the email belongs to another user', async () => {
     const response = await updateUser(eventFor('2', '{"name":"Carlos","email":"LAURA.DIAZ@mail.com"}'));
 
     assert.equal(response.statusCode, 409);
   });
 
-  it('devuelve 400 si falta el body', async () => {
+  it('returns 400 when the body is missing', async () => {
     assert.equal((await updateUser(eventFor('1', undefined))).statusCode, 400);
   });
 
-  it('devuelve 500 ante un error inesperado', async (t) => {
+  it('returns 500 on an unexpected error', async (t) => {
     t.mock.method(console, 'error', () => undefined);
-    const failingHandler = { updateUser: async () => Promise.reject(new TypeError('fallo')) };
+    const failingHandler = { updateUser: async () => Promise.reject(new TypeError('failure')) };
     const fn = buildUpdateUserFunction({ ...beans, userHandler: failingHandler });
 
     assert.equal((await fn(eventFor('1', '{"name":"Ana","email":"ana@mail.com"}'))).statusCode, 500);
@@ -40,15 +40,15 @@ describe('updateUser (PUT /users/{id})', () => {
 });
 
 describe('deleteUser (DELETE /users/{id})', () => {
-  it('elimina un usuario existente y devuelve 204', async () => {
+  it('deletes an existing user and returns 204', async () => {
     assert.equal((await deleteUser(eventFor('3'))).statusCode, 204);
   });
 
-  it('devuelve 404 si el usuario ya no existe', async () => {
+  it('returns 404 when the user no longer exists', async () => {
     assert.equal((await deleteUser(eventFor('3'))).statusCode, 404);
   });
 
-  it('devuelve 400 si falta el id', async () => {
+  it('returns 400 when the id is missing', async () => {
     assert.equal((await deleteUser(eventFor(undefined))).statusCode, 400);
   });
 });

@@ -29,9 +29,9 @@ public class ApiExceptionHandler {
             case UserNotFoundException notFound ->
                     responseFactory.error(HttpURLConnection.HTTP_NOT_FOUND, notFound.getMessage());
             case UserAlreadyExistsException alreadyExists ->
-                    responseFactory.error(HttpURLConnection.HTTP_CONFLICT,alreadyExists.getMessage());
+                    responseFactory.error(HttpURLConnection.HTTP_CONFLICT, alreadyExists.getMessage());
             default -> {
-                logger.log("Error inesperado: " + exception);
+                logger.log("Unexpected error: " + exception);
                 yield responseFactory.error(HttpURLConnection.HTTP_INTERNAL_ERROR, INTERNAL_ERROR_MESSAGE);
             }
         };
