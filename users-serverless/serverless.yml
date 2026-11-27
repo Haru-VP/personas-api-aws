@@ -27,6 +27,7 @@ package:
 
 functions:
   getUser:
+    description: Gets a user by id from DynamoDB
     runtime: java21
     memorySize: 512
     snapStart: true
@@ -40,6 +41,7 @@ functions:
           path: /users/{id}
 
   createUser:
+    description: Creates a user in DynamoDB validating a unique email
     runtime: java21
     memorySize: 512
     snapStart: true
@@ -53,6 +55,7 @@ functions:
           path: /users
 
   updateUser:
+    description: Updates a user in DynamoDB validating a unique email
     runtime: nodejs24.x
     memorySize: 256
     role: UpdateUserRole
@@ -67,6 +70,7 @@ functions:
           path: /users/{id}
 
   deleteUser:
+    description: Deletes a user by id from DynamoDB
     runtime: nodejs24.x
     memorySize: 256
     role: DeleteUserRole
@@ -102,6 +106,37 @@ resources:
                 KeyType: HASH
             Projection:
               ProjectionType: KEYS_ONLY
+        ResourcePolicy:
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: DenyDataAccessExceptUserLambdas
+                Effect: Deny
+                Principal: '*'
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:BatchGetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:ConditionCheckItem
+                  - dynamodb:PartiQLSelect
+                  - dynamodb:PartiQLInsert
+                  - dynamodb:PartiQLUpdate
+                  - dynamodb:PartiQLDelete
+                Resource:
+                  - Fn::Sub: arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.usersTableName}
+                  - Fn::Sub: arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.usersTableName}/index/*
+                Condition:
+                  ArnNotEquals:
+                    aws:PrincipalArn:
+                      - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:service}-${sls:stage}-get-user
+                      - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:service}-${sls:stage}-create-user
+                      - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:service}-${sls:stage}-update-user
+                      - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:service}-${sls:stage}-delete-user
         Tags:
           - Key: project
             Value: reto-aws
@@ -111,6 +146,7 @@ resources:
     GetUserRole:
       Type: AWS::IAM::Role
       Properties:
+        RoleName: ${self:service}-${sls:stage}-get-user
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -138,6 +174,7 @@ resources:
     CreateUserRole:
       Type: AWS::IAM::Role
       Properties:
+        RoleName: ${self:service}-${sls:stage}-create-user
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -170,6 +207,7 @@ resources:
     UpdateUserRole:
       Type: AWS::IAM::Role
       Properties:
+        RoleName: ${self:service}-${sls:stage}-update-user
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -203,6 +241,7 @@ resources:
     DeleteUserRole:
       Type: AWS::IAM::Role
       Properties:
+        RoleName: ${self:service}-${sls:stage}-delete-user
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
